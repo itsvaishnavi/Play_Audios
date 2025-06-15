@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Audio Player Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    audio {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Audio Playlist</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Audio File</th>
+        <th>Player</th>
+      </tr>
+    </thead>
+    <tbody id="audioTableBody">
+      <tr><td colspan="2">Loading audio files...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function loadAudioFiles() {
+      try {
+        const response = await fetch('/api/audios');
+        const audioFiles = await response.json();
+        const tbody = document.getElementById('audioTableBody');
+        tbody.innerHTML = '';
+
+        if (audioFiles.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2">No audio files found.</td></tr>';
+          return;
+        }
+
+        audioFiles.forEach((file, index) => {
+          const row = document.createElement('tr');
+
+          const fileCell = document.createElement('td');
+          fileCell.textContent = file;
+
+          const playerCell = document.createElement('td');
+          playerCell.innerHTML = `
+            <audio controls>
+              <source src="/audios/${file}" type="${getMimeType(file)}">
+              Your browser does not support the audio element.
+            </audio>
+          `;
+
+          row.appendChild(fileCell);
+          row.appendChild(playerCell);
+          tbody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error('Error loading audio files:', error);
+        document.getElementById('audioTableBody').innerHTML =
+          '<tr><td colspan="2">Failed to load audio files.</td></tr>';
+      }
+    }
+
+    function getMimeType(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      switch (ext) {
+        case 'mp3': return 'audio/mpeg';
+        case 'wav': return 'audio/wav';
+        case 'ogg': return 'audio/ogg';
+        case 'opus': return 'audio/ogg'; // Opus usually in Ogg container
+        default: return 'audio/mpeg';
+      }
+    }
+
+    loadAudioFiles();
+  </script>
+
+</body>
+</html>
